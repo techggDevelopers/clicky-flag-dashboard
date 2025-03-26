@@ -2,6 +2,7 @@
 import { useEffect } from "react";
 import { motion } from "framer-motion";
 import Header from "@/components/Header";
+import Navbar from "@/components/Navbar";
 import FlagToggle from "@/components/FlagToggle";
 import { useFlagStore } from "@/lib/flagStore";
 
@@ -42,6 +43,7 @@ const Index = () => {
   
   return (
     <div className="min-h-screen flex flex-col">
+      <Navbar />
       <motion.div 
         className="flex-1 max-w-3xl w-full mx-auto py-16 px-4 sm:px-6"
         initial={{ opacity: 0 }}
