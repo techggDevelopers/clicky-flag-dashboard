@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Mail, Lock, LogIn } from "lucide-react";
+import { Mail, Lock, UserPlus, User } from "lucide-react";
 import { toast } from "sonner";
 
 import Header from "@/components/Header";
@@ -11,9 +11,10 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuthStore } from "@/lib/authStore";
 
-const Login = () => {
+const SignUp = () => {
   const navigate = useNavigate();
-  const { login } = useAuthStore();
+  const { register } = useAuthStore();
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -21,20 +22,20 @@ const Login = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!email || !password) {
-      toast.error("Please enter both email and password");
+    if (!name || !email || !password) {
+      toast.error("Please fill out all fields");
       return;
     }
     
     setIsLoading(true);
     
     try {
-      await login(email, password);
-      toast.success("Login successful!");
+      await register(name, email, password);
+      toast.success("Account created successfully!");
       navigate("/");
     } catch (error: any) {
-      console.error("Login failed:", error);
-      toast.error(error.message || "Login failed. Please try again.");
+      console.error("Registration failed:", error);
+      toast.error(error.message || "Registration failed. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -50,7 +51,7 @@ const Login = () => {
       >
         <Header 
           title="Feature Flags Admin" 
-          description="Please login to access the feature flags dashboard"
+          description="Create an account to access the feature flags dashboard"
         />
         
         <motion.div
@@ -60,13 +61,28 @@ const Login = () => {
         >
           <Card className="mt-8">
             <CardHeader>
-              <CardTitle>Sign In</CardTitle>
+              <CardTitle>Sign Up</CardTitle>
               <CardDescription>
-                Enter your credentials to access the dashboard
+                Create a new account to get started
               </CardDescription>
             </CardHeader>
             <form onSubmit={handleSubmit}>
               <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-muted-foreground">
+                      <User className="h-5 w-5" />
+                    </div>
+                    <Input
+                      type="text"
+                      placeholder="Full name"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                </div>
+                
                 <div className="space-y-2">
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-muted-foreground">
@@ -106,20 +122,20 @@ const Login = () => {
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
-                      Signing in...
+                      Creating account...
                     </span>
                   ) : (
                     <span className="flex items-center">
-                      <LogIn className="mr-2 h-4 w-4" />
-                      Sign In
+                      <UserPlus className="mr-2 h-4 w-4" />
+                      Create Account
                     </span>
                   )}
                 </Button>
                 
                 <div className="text-sm text-center">
-                  Don't have an account?{" "}
-                  <Link to="/signup" className="font-medium text-primary hover:underline">
-                    Sign up
+                  Already have an account?{" "}
+                  <Link to="/login" className="font-medium text-primary hover:underline">
+                    Sign in
                   </Link>
                 </div>
               </CardFooter>
@@ -131,4 +147,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default SignUp;

@@ -26,7 +26,7 @@ const Navbar = () => {
           <div className="flex items-center gap-4">
             <div className="flex items-center text-sm text-muted-foreground">
               <User className="h-4 w-4 mr-2" />
-              <span>{user.email}</span>
+              <span>{user.name || user.email}</span>
             </div>
             
             <Button 

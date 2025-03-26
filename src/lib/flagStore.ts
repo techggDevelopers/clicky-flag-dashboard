@@ -1,6 +1,17 @@
 
 import { create } from 'zustand';
 import { toast } from 'sonner';
+import axios from 'axios';
+
+const API_URL = 'http://localhost:5000/api';
+
+export interface Flag {
+  _id: string;
+  name: string;
+  enabled: boolean;
+  label: string;
+  description: string;
+}
 
 export interface FlagState {
   [key: string]: boolean;
@@ -8,42 +19,47 @@ export interface FlagState {
 
 interface FlagStore {
   flags: FlagState;
+  flagDetails: Flag[];
   isLoading: boolean;
   toggleFlag: (flagName: string) => Promise<void>;
   initFlags: () => Promise<void>;
 }
 
-const initialFlags = {
-  'F1': false,
-  'F2': false,
-  'F3': false,
-  'F4': false,
-};
-
-// Simulate API call delay
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-
-// Simulate a server response
-const mockApiCall = async (flagName: string, value: boolean) => {
-  await delay(600); // Simulate network delay
-  console.log(`Backend updated: ${flagName} set to ${value}`);
-  return { success: true, message: `Flag ${flagName} updated successfully` };
-};
-
 export const useFlagStore = create<FlagStore>((set, get) => ({
-  flags: { ...initialFlags },
+  flags: {},
+  flagDetails: [],
   isLoading: false,
   
   initFlags: async () => {
     set({ isLoading: true });
     try {
-      // In a real app, you would fetch initial flag states from your backend
-      await delay(800);
-      set({ flags: { ...initialFlags }, isLoading: false });
+      const response = await axios.get(`${API_URL}/flags`);
+      const flagsData = response.data;
+      
+      // Convert to the format our app uses
+      const flagState: FlagState = {};
+      flagsData.forEach((flag: Flag) => {
+        flagState[flag.name] = flag.enabled;
+      });
+      
+      set({ 
+        flags: flagState, 
+        flagDetails: flagsData,
+        isLoading: false 
+      });
     } catch (error) {
       console.error('Failed to initialize flags:', error);
       toast.error('Failed to load flags');
       set({ isLoading: false });
+      
+      // Fallback to initial data if the API call fails
+      const initialFlags = {
+        'F1': false,
+        'F2': false,
+        'F3': false,
+        'F4': false,
+      };
+      set({ flags: { ...initialFlags } });
     }
   },
   
@@ -60,21 +76,21 @@ export const useFlagStore = create<FlagStore>((set, get) => ({
     }));
     
     try {
-      // Send the update to the "backend"
-      const response = await mockApiCall(flagName, newValue);
+      // Send the update to the backend
+      await axios.patch(`${API_URL}/flags/${flagName}`, {
+        enabled: newValue
+      });
       
-      if (response.success) {
-        toast.success(response.message);
-      } else {
-        // If the API call fails, revert the state
-        set(state => ({
-          flags: {
-            ...state.flags,
-            [flagName]: currentValue
-          }
-        }));
-        toast.error('Failed to update flag');
-      }
+      toast.success(`Flag ${flagName} updated successfully`);
+      
+      // Update the flagDetails array too
+      set(state => ({
+        flagDetails: state.flagDetails.map(flag => 
+          flag.name === flagName 
+            ? { ...flag, enabled: newValue } 
+            : flag
+        )
+      }));
     } catch (error) {
       console.error('Error updating flag:', error);
       // Revert on error

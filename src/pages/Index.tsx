@@ -6,31 +6,8 @@ import Navbar from "@/components/Navbar";
 import FlagToggle from "@/components/FlagToggle";
 import { useFlagStore } from "@/lib/flagStore";
 
-const flags = [
-  { 
-    name: "F1", 
-    label: "Analytics", 
-    description: "Enable data collection and performance analytics" 
-  },
-  { 
-    name: "F2", 
-    label: "Dark Mode", 
-    description: "Enable dark mode appearance throughout the app" 
-  },
-  { 
-    name: "F3", 
-    label: "Notifications", 
-    description: "Enable push and email notifications for new events" 
-  },
-  { 
-    name: "F4", 
-    label: "Beta Features", 
-    description: "Access experimental features before public release" 
-  }
-];
-
 const Index = () => {
-  const { initFlags, flags: flagStates } = useFlagStore();
+  const { initFlags, flags: flagStates, flagDetails } = useFlagStore();
   
   useEffect(() => {
     initFlags();
@@ -56,15 +33,21 @@ const Index = () => {
         />
         
         <div className="mt-8">
-          {flags.map((flag, index) => (
-            <FlagToggle 
-              key={flag.name}
-              name={flag.name}
-              label={flag.label}
-              description={flag.description}
-              index={index}
-            />
-          ))}
+          {flagDetails.length > 0 ? (
+            flagDetails.map((flag, index) => (
+              <FlagToggle 
+                key={flag._id}
+                name={flag.name}
+                label={flag.label}
+                description={flag.description}
+                index={index}
+              />
+            ))
+          ) : (
+            <div className="text-center py-10 text-muted-foreground">
+              Loading feature flags...
+            </div>
+          )}
         </div>
         
         <motion.div 
