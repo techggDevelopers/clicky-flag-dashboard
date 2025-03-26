@@ -13,10 +13,11 @@ import { useAuthStore } from "@/lib/authStore";
 
 const Login = () => {
   const navigate = useNavigate();
-  const { login } = useAuthStore();
+  const { login, resendVerification } = useAuthStore();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isResendingVerification, setIsResendingVerification] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,9 +35,38 @@ const Login = () => {
       navigate("/");
     } catch (error: any) {
       console.error("Login failed:", error);
-      toast.error(error.message || "Login failed. Please try again.");
+      
+      // Check if the error is due to unverified email
+      if (error.message && error.message.includes("verify your email")) {
+        toast.error("Please verify your email before logging in", {
+          action: {
+            label: "Resend verification",
+            onClick: () => handleResendVerification(),
+          },
+        });
+      } else {
+        toast.error(error.message || "Login failed. Please try again.");
+      }
     } finally {
       setIsLoading(false);
+    }
+  };
+  
+  const handleResendVerification = async () => {
+    if (!email) {
+      toast.error("Please enter your email address");
+      return;
+    }
+    
+    setIsResendingVerification(true);
+    
+    try {
+      const message = await resendVerification(email);
+      toast.success(message);
+    } catch (error: any) {
+      toast.error(error.message || "Failed to resend verification email");
+    } finally {
+      setIsResendingVerification(false);
     }
   };
 
@@ -120,14 +150,27 @@ const Login = () => {
                   )}
                 </Button>
                 
-                <div className="text-sm text-center">
-                  Don't have an account?{" "}
-                  <Link 
-                    to="/signup" 
-                    className="font-medium text-primary hover:underline hover:text-primary/80 transition-colors"
-                  >
-                    Sign up
-                  </Link>
+                <div className="flex flex-col gap-2 text-sm text-center">
+                  <div>
+                    Don't have an account?{" "}
+                    <Link 
+                      to="/signup" 
+                      className="font-medium text-primary hover:underline hover:text-primary/80 transition-colors"
+                    >
+                      Sign up
+                    </Link>
+                  </div>
+                  
+                  <div>
+                    <Button 
+                      variant="link" 
+                      className="p-0 h-auto text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+                      onClick={handleResendVerification}
+                      disabled={isResendingVerification || !email}
+                    >
+                      {isResendingVerification ? "Sending..." : "Resend verification email"}
+                    </Button>
+                  </div>
                 </div>
               </CardFooter>
             </form>
