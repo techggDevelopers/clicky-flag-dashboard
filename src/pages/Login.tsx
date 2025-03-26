@@ -58,10 +58,10 @@ const Login = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, duration: 0.5 }}
         >
-          <Card className="mt-8">
+          <Card className="mt-8 bg-gradient-to-br from-primary/5 to-primary/10">
             <CardHeader>
-              <CardTitle>Sign In</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-2xl font-bold text-primary">Sign In</CardTitle>
+              <CardDescription className="text-muted-foreground">
                 Enter your credentials to access the dashboard
               </CardDescription>
             </CardHeader>
@@ -99,7 +99,11 @@ const Login = () => {
               </CardContent>
               
               <CardFooter className="flex flex-col gap-4">
-                <Button type="submit" className="w-full" disabled={isLoading}>
+                <Button 
+                  type="submit" 
+                  className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-white font-semibold tracking-wider" 
+                  disabled={isLoading}
+                >
                   {isLoading ? (
                     <span className="flex items-center">
                       <svg className="animate-spin -ml-1 mr-3 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -118,7 +122,10 @@ const Login = () => {
                 
                 <div className="text-sm text-center">
                   Don't have an account?{" "}
-                  <Link to="/signup" className="font-medium text-primary hover:underline">
+                  <Link 
+                    to="/signup" 
+                    className="font-medium text-primary hover:underline hover:text-primary/80 transition-colors"
+                  >
                     Sign up
                   </Link>
                 </div>
