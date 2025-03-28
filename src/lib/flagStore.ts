@@ -3,7 +3,7 @@ import { create } from 'zustand';
 import { toast } from 'sonner';
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = 'https://clicky-flag-dashboard-api.vercel.app/';
 
 export interface Flag {
   _id: string;
