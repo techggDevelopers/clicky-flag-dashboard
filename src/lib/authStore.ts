@@ -9,23 +9,24 @@ interface User {
   _id: string;
   name: string;
   email: string;
-  isVerified: boolean;
 }
 
-interface VerificationResponse {
+interface LoginError {
   message: string;
-  verificationToken?: string;
+  attemptsRemaining?: number;
+  locked?: boolean;
+  remainingTime?: number;
 }
 
 interface AuthState {
   isAuthenticated: boolean;
   user: User | null;
   token: string | null;
+  loginError: LoginError | null;
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<string>;
-  verifyEmail: (token: string) => Promise<string>;
-  resendVerification: (email: string) => Promise<string>;
   logout: () => void;
+  clearLoginError: () => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -34,6 +35,7 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
       user: null,
       token: null,
+      loginError: null,
       
       login: async (email: string, password: string) => {
         try {
@@ -47,14 +49,25 @@ export const useAuthStore = create<AuthState>()(
           set({ 
             isAuthenticated: true,
             user,
-            token
+            token,
+            loginError: null
           });
           
           // Set the Authorization header for all future requests
           axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
         } catch (error: any) {
           console.error("Login error:", error);
-          throw new Error(error.response?.data?.message || "Invalid credentials");
+          
+          const errorData = error.response?.data || {};
+          const loginError: LoginError = {
+            message: errorData.message || "Invalid credentials",
+            attemptsRemaining: errorData.attemptsRemaining,
+            locked: errorData.locked,
+            remainingTime: errorData.remainingTime
+          };
+          
+          set({ loginError });
+          throw new Error(loginError.message);
         }
       },
       
@@ -66,35 +79,23 @@ export const useAuthStore = create<AuthState>()(
             password
           });
           
+          // After successful registration, automatically log the user in
+          const { user, token } = response.data;
+          
+          set({ 
+            isAuthenticated: true,
+            user,
+            token,
+            loginError: null
+          });
+          
+          // Set the Authorization header for all future requests
+          axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+          
           return response.data.message;
         } catch (error: any) {
           console.error("Registration error:", error);
           throw new Error(error.response?.data?.message || "Registration failed");
-        }
-      },
-      
-      verifyEmail: async (token: string) => {
-        try {
-          const response = await axios.get<VerificationResponse>(
-            `${API_URL}/auth/verify-email?token=${token}`
-          );
-          return response.data.message;
-        } catch (error: any) {
-          console.error("Email verification error:", error);
-          throw new Error(error.response?.data?.message || "Verification failed");
-        }
-      },
-      
-      resendVerification: async (email: string) => {
-        try {
-          const response = await axios.post<VerificationResponse>(
-            `${API_URL}/auth/resend-verification`,
-            { email }
-          );
-          return response.data.message;
-        } catch (error: any) {
-          console.error("Resend verification error:", error);
-          throw new Error(error.response?.data?.message || "Failed to resend verification email");
         }
       },
       
@@ -105,8 +106,13 @@ export const useAuthStore = create<AuthState>()(
         set({ 
           isAuthenticated: false,
           user: null,
-          token: null
+          token: null,
+          loginError: null
         });
+      },
+      
+      clearLoginError: () => {
+        set({ loginError: null });
       }
     }),
     {

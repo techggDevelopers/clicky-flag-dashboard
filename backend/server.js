@@ -4,7 +4,6 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const crypto = require('crypto');
 require('dotenv').config();
 
 const app = express();
@@ -25,9 +24,8 @@ const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  isVerified: { type: Boolean, default: false },
-  verificationToken: { type: String },
-  verificationExpires: { type: Date },
+  loginAttempts: { type: Number, default: 0 },
+  lockUntil: { type: Date, default: null },
   createdAt: { type: Date, default: Date.now }
 });
 
@@ -99,11 +97,6 @@ const initializeFlags = async () => {
 
 initializeFlags();
 
-// Utility function to generate verification token
-const generateVerificationToken = () => {
-  return crypto.randomBytes(32).toString('hex');
-};
-
 // Routes
 // Auth Routes
 app.post('/api/auth/register', async (req, res) => {
@@ -120,72 +113,32 @@ app.post('/api/auth/register', async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
     
-    // Generate verification token
-    const verificationToken = generateVerificationToken();
-    const verificationExpires = new Date();
-    verificationExpires.setHours(verificationExpires.getHours() + 24); // Token expires in 24 hours
-    
     // Create new user
     const user = new User({
       name,
       email,
       password: hashedPassword,
-      isVerified: false,
-      verificationToken,
-      verificationExpires
+      loginAttempts: 0,
+      lockUntil: null
     });
     
     await user.save();
     
-    // In a real application, you would send an email with the verification link
-    // For this demo, we'll just return the token in the response
-    console.log(`Verification link for ${email}: /verify-email?token=${verificationToken}`);
+    // Generate JWT token
+    const token = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: '7d' });
     
     res.status(201).json({
-      message: 'User registered. Please check your email to verify your account.',
-      verificationToken, // In a real app, you wouldn't include this in the response
+      message: 'User registered successfully',
       user: {
         _id: user._id,
         name: user.name,
-        email: user.email,
-        isVerified: user.isVerified
-      }
+        email: user.email
+      },
+      token
     });
   } catch (error) {
     console.error('Registration error:', error);
     res.status(500).json({ message: 'Server error during registration' });
-  }
-});
-
-// Email verification endpoint
-app.get('/api/auth/verify-email', async (req, res) => {
-  try {
-    const { token } = req.query;
-    
-    if (!token) {
-      return res.status(400).json({ message: 'Verification token is required' });
-    }
-    
-    // Find user with the token
-    const user = await User.findOne({ 
-      verificationToken: token,
-      verificationExpires: { $gt: Date.now() }  // Check if token is still valid
-    });
-    
-    if (!user) {
-      return res.status(400).json({ message: 'Invalid or expired verification token' });
-    }
-    
-    // Update user to verified
-    user.isVerified = true;
-    user.verificationToken = undefined;
-    user.verificationExpires = undefined;
-    await user.save();
-    
-    res.json({ message: 'Email verified successfully. You can now login.' });
-  } catch (error) {
-    console.error('Verification error:', error);
-    res.status(500).json({ message: 'Server error during verification' });
   }
 });
 
@@ -199,16 +152,52 @@ app.post('/api/auth/login', async (req, res) => {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
     
-    // Check if user is verified
-    if (!user.isVerified) {
-      return res.status(403).json({ message: 'Please verify your email before logging in' });
+    // Check if account is locked
+    const now = new Date();
+    if (user.lockUntil && user.lockUntil > now) {
+      const remainingTime = Math.ceil((user.lockUntil - now) / 1000 / 60);
+      return res.status(403).json({ 
+        message: `Account is locked. Try again in ${remainingTime} minutes.`,
+        locked: true,
+        remainingTime
+      });
     }
     
     // Validate password
     const isMatch = await bcrypt.compare(password, user.password);
+    
     if (!isMatch) {
-      return res.status(400).json({ message: 'Invalid credentials' });
+      // Increment login attempts
+      user.loginAttempts += 1;
+      
+      // Lock account if 5 or more failed attempts
+      if (user.loginAttempts >= 5) {
+        // Lock for 30 minutes
+        const lockUntil = new Date();
+        lockUntil.setMinutes(lockUntil.getMinutes() + 30);
+        user.lockUntil = lockUntil;
+        
+        await user.save();
+        
+        return res.status(403).json({ 
+          message: 'Too many failed attempts. Account locked for 30 minutes.',
+          locked: true,
+          remainingTime: 30
+        });
+      }
+      
+      await user.save();
+      
+      return res.status(400).json({ 
+        message: `Invalid credentials. ${5 - user.loginAttempts} attempts remaining.`,
+        attemptsRemaining: 5 - user.loginAttempts
+      });
     }
+    
+    // Reset login attempts on successful login
+    user.loginAttempts = 0;
+    user.lockUntil = null;
+    await user.save();
     
     // Generate JWT token
     const token = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: '7d' });
@@ -218,53 +207,13 @@ app.post('/api/auth/login', async (req, res) => {
       user: {
         _id: user._id,
         name: user.name,
-        email: user.email,
-        isVerified: user.isVerified
+        email: user.email
       },
       token
     });
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ message: 'Server error during login' });
-  }
-});
-
-// Resend verification email
-app.post('/api/auth/resend-verification', async (req, res) => {
-  try {
-    const { email } = req.body;
-    
-    // Find user
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(400).json({ message: 'User not found' });
-    }
-    
-    // Check if already verified
-    if (user.isVerified) {
-      return res.status(400).json({ message: 'Email already verified' });
-    }
-    
-    // Generate new verification token
-    const verificationToken = generateVerificationToken();
-    const verificationExpires = new Date();
-    verificationExpires.setHours(verificationExpires.getHours() + 24);
-    
-    // Update user
-    user.verificationToken = verificationToken;
-    user.verificationExpires = verificationExpires;
-    await user.save();
-    
-    // In a real application, send email with the verification link
-    console.log(`New verification link for ${email}: /verify-email?token=${verificationToken}`);
-    
-    res.json({
-      message: 'Verification email resent. Please check your inbox.',
-      verificationToken // In a real app, you wouldn't include this in the response
-    });
-  } catch (error) {
-    console.error('Resend verification error:', error);
-    res.status(500).json({ message: 'Server error' });
   }
 });
 

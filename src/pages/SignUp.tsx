@@ -18,7 +18,6 @@ const SignUp = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [registrationComplete, setRegistrationComplete] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,12 +27,17 @@ const SignUp = () => {
       return;
     }
     
+    if (password.length < 6) {
+      toast.error("Password must be at least 6 characters long");
+      return;
+    }
+    
     setIsLoading(true);
     
     try {
-      const message = await register(name, email, password);
-      toast.success(message);
-      setRegistrationComplete(true);
+      await register(name, email, password);
+      toast.success("Account created successfully!");
+      navigate("/"); // Redirect to dashboard since we're now logged in
     } catch (error: any) {
       console.error("Registration failed:", error);
       toast.error(error.message || "Registration failed. Please try again.");
@@ -41,89 +45,6 @@ const SignUp = () => {
       setIsLoading(false);
     }
   };
-
-  if (registrationComplete) {
-    return (
-      <div className="min-h-screen flex flex-col">
-        <motion.div 
-          className="flex-1 max-w-md w-full mx-auto py-16 px-4 sm:px-6"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
-        >
-          <Header 
-            title="Feature Flags Admin" 
-            description="Email Verification Required"
-          />
-          
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.5 }}
-          >
-            <Card className="mt-8 bg-gradient-to-br from-primary/5 to-primary/10">
-              <CardHeader>
-                <CardTitle className="text-2xl font-bold text-primary">Check Your Email</CardTitle>
-                <CardDescription className="text-muted-foreground">
-                  We've sent a verification link to {email}
-                </CardDescription>
-              </CardHeader>
-              
-              <CardContent className="text-center">
-                <div className="flex flex-col items-center space-y-4">
-                  <div className="h-14 w-14 bg-blue-100 rounded-full flex items-center justify-center text-primary">
-                    <Mail className="h-8 w-8" />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <p className="text-lg font-medium">Account Created Successfully!</p>
-                    <p className="text-sm text-muted-foreground">
-                      Please check your email and click on the verification link to activate your account.
-                      If you don't see the email, check your spam folder.
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-              
-              <CardFooter className="flex flex-col gap-4">
-                <Button
-                  asChild
-                  className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-white font-semibold tracking-wider"
-                >
-                  <Link to="/login">
-                    Proceed to Login
-                  </Link>
-                </Button>
-                
-                <div className="text-sm text-center">
-                  Didn't receive the email?{" "}
-                  <Button 
-                    variant="link" 
-                    className="p-0 h-auto font-medium text-primary hover:underline hover:text-primary/80 transition-colors"
-                    onClick={async () => {
-                      try {
-                        setIsLoading(true);
-                        const { resendVerification } = useAuthStore.getState();
-                        const message = await resendVerification(email);
-                        toast.success(message);
-                      } catch (error: any) {
-                        toast.error(error.message || "Failed to resend verification email");
-                      } finally {
-                        setIsLoading(false);
-                      }
-                    }}
-                    disabled={isLoading}
-                  >
-                    {isLoading ? "Sending..." : "Resend verification email"}
-                  </Button>
-                </div>
-              </CardFooter>
-            </Card>
-          </motion.div>
-        </motion.div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -195,6 +116,9 @@ const SignUp = () => {
                       className="pl-10"
                     />
                   </div>
+                  <p className="text-xs text-muted-foreground">
+                    Password must be at least 6 characters long
+                  </p>
                 </div>
               </CardContent>
               

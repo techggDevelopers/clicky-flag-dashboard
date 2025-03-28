@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Mail, Lock, LogIn } from "lucide-react";
@@ -10,14 +10,21 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuthStore } from "@/lib/authStore";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const Login = () => {
   const navigate = useNavigate();
-  const { login, resendVerification } = useAuthStore();
+  const { login, loginError, clearLoginError } = useAuthStore();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [isResendingVerification, setIsResendingVerification] = useState(false);
+
+  // Clear any login errors when component unmounts or when inputs change
+  useEffect(() => {
+    return () => {
+      clearLoginError();
+    };
+  }, [clearLoginError, email, password]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,38 +42,9 @@ const Login = () => {
       navigate("/");
     } catch (error: any) {
       console.error("Login failed:", error);
-      
-      // Check if the error is due to unverified email
-      if (error.message && error.message.includes("verify your email")) {
-        toast.error("Please verify your email before logging in", {
-          action: {
-            label: "Resend verification",
-            onClick: () => handleResendVerification(),
-          },
-        });
-      } else {
-        toast.error(error.message || "Login failed. Please try again.");
-      }
+      // Toast message is handled by the useAuthStore login function
     } finally {
       setIsLoading(false);
-    }
-  };
-  
-  const handleResendVerification = async () => {
-    if (!email) {
-      toast.error("Please enter your email address");
-      return;
-    }
-    
-    setIsResendingVerification(true);
-    
-    try {
-      const message = await resendVerification(email);
-      toast.success(message);
-    } catch (error: any) {
-      toast.error(error.message || "Failed to resend verification email");
-    } finally {
-      setIsResendingVerification(false);
     }
   };
 
@@ -97,6 +75,24 @@ const Login = () => {
             </CardHeader>
             <form onSubmit={handleSubmit}>
               <CardContent className="space-y-4">
+                {loginError && (
+                  <Alert variant="destructive" className="bg-red-50 text-red-800 border border-red-200">
+                    <AlertDescription className="text-sm">
+                      {loginError.message}
+                      {loginError.attemptsRemaining !== undefined && (
+                        <div className="mt-1 font-medium">
+                          Attempts remaining: {loginError.attemptsRemaining}
+                        </div>
+                      )}
+                      {loginError.locked && (
+                        <div className="mt-1 font-medium">
+                          Account locked. Try again in {loginError.remainingTime} minutes.
+                        </div>
+                      )}
+                    </AlertDescription>
+                  </Alert>
+                )}
+                
                 <div className="space-y-2">
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-muted-foreground">
@@ -132,7 +128,7 @@ const Login = () => {
                 <Button 
                   type="submit" 
                   className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-white font-semibold tracking-wider" 
-                  disabled={isLoading}
+                  disabled={isLoading || (loginError?.locked === true)}
                 >
                   {isLoading ? (
                     <span className="flex items-center">
@@ -159,17 +155,6 @@ const Login = () => {
                     >
                       Sign up
                     </Link>
-                  </div>
-                  
-                  <div>
-                    <Button 
-                      variant="link" 
-                      className="p-0 h-auto text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
-                      onClick={handleResendVerification}
-                      disabled={isResendingVerification || !email}
-                    >
-                      {isResendingVerification ? "Sending..." : "Resend verification email"}
-                    </Button>
                   </div>
                 </div>
               </CardFooter>
