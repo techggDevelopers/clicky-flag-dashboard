@@ -58,7 +58,7 @@ const Login = () => {
       >
         <Header 
           title="Feature Flags Admin" 
-          description="Please login to access the feature flags dashboard"
+          description="Please login to access the dashboard"
         />
         
         <motion.div

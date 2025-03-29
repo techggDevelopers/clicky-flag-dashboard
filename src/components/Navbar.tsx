@@ -19,7 +19,7 @@ const Navbar = () => {
     <nav className="bg-background border-b border-border py-3 px-4 sm:px-6">
       <div className="max-w-7xl mx-auto flex justify-between items-center">
         <div className="flex items-center">
-          <span className="text-lg font-medium">Feature Flags Dashboard</span>
+          <span className="text-lg font-medium">Dashboard</span>
         </div>
         
         {user && (

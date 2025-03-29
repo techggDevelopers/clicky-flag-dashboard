@@ -56,7 +56,7 @@ const SignUp = () => {
       >
         <Header 
           title="Feature Flags Admin" 
-          description="Create an account to access the feature flags dashboard"
+          description="Create an account to access the dashboard"
         />
         
         <motion.div

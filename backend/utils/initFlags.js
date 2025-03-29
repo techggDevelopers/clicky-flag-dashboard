@@ -7,26 +7,20 @@ const initializeFlags = async () => {
     const initialFlags = [
       { 
         name: "F1", 
-        label: "Analytics", 
-        description: "Enable data collection and performance analytics",
+        label: "Danger", 
+        description: "Self Destruct & ShutDown",
         enabled: false
       },
       { 
         name: "F2", 
-        label: "Dark Mode", 
-        description: "Enable dark mode appearance throughout the app",
+        label: "Restore", 
+        description: "Self Restore & Start Apps",
         enabled: false
       },
       { 
         name: "F3", 
-        label: "Notifications", 
-        description: "Enable push and email notifications for new events",
-        enabled: false
-      },
-      { 
-        name: "F4", 
-        label: "Beta Features", 
-        description: "Access experimental features before public release",
+        label: "Support", 
+        description: "Allow remote access for support",
         enabled: false
       }
     ];
