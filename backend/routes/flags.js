@@ -6,7 +6,7 @@ const auth = require('../middleware/auth');
 const router = express.Router();
 
 // Get all flags
-router.get('/', auth, async (req, res) => {
+router.get('/', async (req, res) => {
   try {
     const flags = await Flag.find().sort({ name: 1 });
     res.json(flags);
