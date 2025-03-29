@@ -1,0 +1,20 @@
+
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "server.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "server.js"
+    }
+  ],
+  "env": {
+    "MONGODB_URI": "mongodb+srv://priyanshu:Piyu%40123123@cluster01.mmq51.mongodb.net/Registrationxs?retryWrites=true&w=majority",
+    "JWT_SECRET": "your_jwt_secret_key_change_this_in_production"
+  }
+}

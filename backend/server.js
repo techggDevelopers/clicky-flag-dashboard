@@ -10,10 +10,17 @@ const authRoutes = require('./routes/auth');
 const flagRoutes = require('./routes/flags');
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+
+// CORS configuration - allow your frontend domain
+const corsOptions = {
+  origin: ['https://your-frontend-domain.vercel.app', 'http://localhost:8080'],
+  methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+};
 
 // Middleware
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Connect to MongoDB
@@ -26,7 +33,15 @@ initializeFlags();
 app.use('/api/auth', authRoutes);
 app.use('/api/flags', flagRoutes);
 
-// Start Server
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+// For local development
+const PORT = process.env.PORT || 5000;
+
+// Handle both local development and Vercel serverless functions
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}
+
+// Export for Vercel serverless
+module.exports = app;
