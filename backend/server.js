@@ -30,8 +30,8 @@ connectDB();
 initializeFlags();
 
 // Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/flags', flagRoutes);
+app.use('/auth', authRoutes);
+app.use('/flags', flagRoutes);
 
 // For local development
 const PORT = process.env.PORT || 5000;
