@@ -4,7 +4,7 @@ import { persist } from 'zustand/middleware';
 import axios from 'axios';
 
 // Use environment variable or default to the Vercel deployed backend
-const API_URL = import.meta.env.VITE_API_URL || 'https://clicky-flag-dashboard-api.vercel.app';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 interface User {
   _id: string;

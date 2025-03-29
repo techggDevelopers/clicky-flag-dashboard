@@ -20,7 +20,8 @@ const corsOptions = {
 };
 
 // Middleware
-app.use(cors(corsOptions));
+// app.use(cors(corsOptions));
+app.use(cors()); // Allow all origins for development
 app.use(express.json());
 
 // Connect to MongoDB
