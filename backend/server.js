@@ -13,7 +13,7 @@ const app = express();
 
 // CORS configuration - allow your frontend domain
 const corsOptions = {
-  origin: ['https://your-frontend-domain.vercel.app', 'http://localhost:8080'],
+  origin: ['https://clicky-flag-dashboard-front.vercel.app', 'http://localhost:8080'],
   methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
