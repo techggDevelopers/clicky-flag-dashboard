@@ -28,7 +28,7 @@ const Index = () => {
         transition={{ duration: 0.5 }}
       >
         <Header 
-          title="Feature Flags" 
+          title="Dashboard" 
           description="Toggle system features on or off. Changes are saved instantly."
         />
         
@@ -45,7 +45,7 @@ const Index = () => {
             ))
           ) : (
             <div className="text-center py-10 text-muted-foreground">
-              Loading feature flags...
+              Loading flags...
             </div>
           )}
         </div>

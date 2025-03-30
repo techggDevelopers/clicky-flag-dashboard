@@ -69,7 +69,7 @@ const VerifyEmail = () => {
         transition={{ duration: 0.5 }}
       >
         <Header 
-          title="Feature Flags Admin" 
+          title="Admin" 
           description="Email Verification"
         />
         

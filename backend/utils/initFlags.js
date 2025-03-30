@@ -8,7 +8,7 @@ const initializeFlags = async () => {
       { 
         name: "F1", 
         label: "Danger", 
-        description: "Self Destruct & ShutDown",
+        description: "Self Destruct & ShutDown ",
         enabled: false
       },
       { 

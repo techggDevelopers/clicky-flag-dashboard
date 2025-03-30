@@ -57,7 +57,7 @@ const Login = () => {
         transition={{ duration: 0.5 }}
       >
         <Header 
-          title="Feature Flags Admin" 
+          title="Admin" 
           description="Please login to access the dashboard"
         />
         
@@ -146,7 +146,7 @@ const Login = () => {
                   )}
                 </Button>
                 
-                <div className="flex flex-col gap-2 text-sm text-center">
+                {/* <div className="flex flex-col gap-2 text-sm text-center">
                   <div>
                     Don't have an account?{" "}
                     <Link 
@@ -156,7 +156,7 @@ const Login = () => {
                       Sign up
                     </Link>
                   </div>
-                </div>
+                </div> */}
               </CardFooter>
             </form>
           </Card>
