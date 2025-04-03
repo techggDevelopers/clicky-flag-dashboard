@@ -1,4 +1,3 @@
-
 const express = require('express');
 const Flag = require('../models/Flag');
 const auth = require('../middleware/auth');
@@ -21,16 +20,24 @@ router.patch('/:name', auth, async (req, res) => {
   try {
     const { name } = req.params;
     const { enabled } = req.body;
-    
+
     const flag = await Flag.findOne({ name });
     if (!flag) {
       return res.status(404).json({ message: 'Flag not found' });
     }
-    
+
+    // If enabling a flag, disable all other flags
+    if (enabled) {
+      await Flag.updateMany(
+        { name: { $ne: name } },
+        { enabled: false, updatedAt: Date.now() }
+      );
+    }
+
     flag.enabled = enabled;
     flag.updatedAt = Date.now();
     await flag.save();
-    
+
     res.json(flag);
   } catch (error) {
     console.error('Error updating flag:', error);

@@ -37,28 +37,28 @@ export const useAuthStore = create<AuthState>()(
       user: null,
       token: null,
       loginError: null,
-      
+
       login: async (email: string, password: string) => {
         try {
           const response = await axios.post(`${API_URL}/auth/login`, {
             email,
             password
           });
-          
+
           const { user, token } = response.data;
-          
-          set({ 
+
+          set({
             isAuthenticated: true,
             user,
             token,
             loginError: null
           });
-          
+
           // Set the Authorization header for all future requests
           axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
         } catch (error: any) {
           console.error("Login error:", error);
-          
+
           const errorData = error.response?.data || {};
           const loginError: LoginError = {
             message: errorData.message || "Invalid credentials",
@@ -66,12 +66,12 @@ export const useAuthStore = create<AuthState>()(
             locked: errorData.locked,
             remainingTime: errorData.remainingTime
           };
-          
+
           set({ loginError });
           throw new Error(loginError.message);
         }
       },
-      
+
       register: async (name: string, email: string, password: string) => {
         try {
           const response = await axios.post(`${API_URL}/auth/register`, {
@@ -79,39 +79,39 @@ export const useAuthStore = create<AuthState>()(
             email,
             password
           });
-          
+
           // After successful registration, automatically log the user in
           const { user, token } = response.data;
-          
-          set({ 
+
+          set({
             isAuthenticated: true,
             user,
             token,
             loginError: null
           });
-          
+
           // Set the Authorization header for all future requests
           axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-          
+
           return response.data.message;
         } catch (error: any) {
           console.error("Registration error:", error);
           throw new Error(error.response?.data?.message || "Registration failed");
         }
       },
-      
+
       logout: () => {
         // Remove the Authorization header
         delete axios.defaults.headers.common['Authorization'];
-        
-        set({ 
+
+        set({
           isAuthenticated: false,
           user: null,
           token: null,
           loginError: null
         });
       },
-      
+
       clearLoginError: () => {
         set({ loginError: null });
       }

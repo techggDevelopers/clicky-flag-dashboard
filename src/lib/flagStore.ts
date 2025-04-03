@@ -1,4 +1,3 @@
-
 import { create } from 'zustand';
 import { toast } from 'sonner';
 import axios from 'axios';
@@ -30,66 +29,74 @@ export const useFlagStore = create<FlagStore>((set, get) => ({
   flags: {},
   flagDetails: [],
   isLoading: false,
-  
+
   initFlags: async () => {
     set({ isLoading: true });
     try {
       const response = await axios.get(`${API_URL}/flags`);
       const flagsData = response.data;
-      
+
       // Convert to the format our app uses
       const flagState: FlagState = {};
       flagsData.forEach((flag: Flag) => {
         flagState[flag.name] = flag.enabled;
       });
-      
-      set({ 
-        flags: flagState, 
+
+      set({
+        flags: flagState,
         flagDetails: flagsData,
-        isLoading: false 
+        isLoading: false
       });
     } catch (error) {
       console.error('Failed to initialize flags:', error);
       toast.error('Failed to load flags');
       set({ isLoading: false });
-      
+
       // Fallback to initial data if the API call fails
       const initialFlags = {
-        'F1': false,
-        'F2': false,
-        'F3': false,
-        'F4': false,
+        'F1': false,  // Danger
+        'F2': false,  // Restore
+        'F3': false,  // Support
       };
       set({ flags: { ...initialFlags } });
     }
   },
-  
+
   toggleFlag: async (flagName: string) => {
     const currentValue = get().flags[flagName];
     const newValue = !currentValue;
-    
+
     // Optimistically update UI
-    set(state => ({
-      flags: {
-        ...state.flags,
-        [flagName]: newValue
+    set(state => {
+      // If enabling a flag, disable all other flags
+      const updatedFlags = { ...state.flags };
+      if (newValue) {
+        Object.keys(updatedFlags).forEach(key => {
+          updatedFlags[key] = key === flagName;
+        });
+      } else {
+        updatedFlags[flagName] = false;
       }
-    }));
-    
+
+      return {
+        flags: updatedFlags
+      };
+    });
+
     try {
       // Send the update to the backend
       await axios.patch(`${API_URL}/flags/${flagName}`, {
         enabled: newValue
       });
-      
-      toast.success(`Flag ${flagName} updated successfully`);
-      
+
+      toast.success(`Flag ${flagName} ${newValue ? 'enabled' : 'disabled'}`);
+
       // Update the flagDetails array too
       set(state => ({
-        flagDetails: state.flagDetails.map(flag => 
-          flag.name === flagName 
-            ? { ...flag, enabled: newValue } 
-            : flag
+        flagDetails: state.flagDetails.map(flag =>
+          flag.name === flagName
+            ? { ...flag, enabled: newValue }
+            : { ...flag, enabled: false }
         )
       }));
     } catch (error) {

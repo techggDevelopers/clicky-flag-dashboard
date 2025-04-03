@@ -1,6 +1,5 @@
-
 import { motion, AnimatePresence } from "framer-motion";
-import { Flag } from "lucide-react";
+import { AlertTriangle, RefreshCcw, HeadphonesIcon } from "lucide-react";
 import { useFlagStore } from "@/lib/flagStore";
 
 interface FlagToggleProps {
@@ -14,6 +13,19 @@ const FlagToggle = ({ name, label, description, index }: FlagToggleProps) => {
   const { flags, toggleFlag } = useFlagStore();
   const isActive = flags[name];
 
+  const getIcon = (flagName: string) => {
+    switch (flagName) {
+      case 'F1':
+        return <AlertTriangle className={`h-5 w-5 ${isActive ? 'text-red-500' : 'text-muted-foreground'}`} />;
+      case 'F2':
+        return <RefreshCcw className={`h-5 w-5 ${isActive ? 'text-green-500' : 'text-muted-foreground'}`} />;
+      case 'F3':
+        return <HeadphonesIcon className={`h-5 w-5 ${isActive ? 'text-blue-500' : 'text-muted-foreground'}`} />;
+      default:
+        return null;
+    }
+  };
+
   const handleToggle = async () => {
     await toggleFlag(name);
   };
@@ -23,17 +35,21 @@ const FlagToggle = ({ name, label, description, index }: FlagToggleProps) => {
       className="relative mb-6 last:mb-0"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ 
-        duration: 0.5, 
+      transition={{
+        duration: 0.5,
         delay: 0.1 + (index * 0.1),
         ease: [0.22, 1, 0.36, 1]
       }}
     >
-      <motion.div 
+      <motion.div
         className={`
           p-6 rounded-xl border transition-all duration-300 shadow-sm
-          ${isActive 
-            ? 'border-primary/30 bg-primary/5' 
+          ${isActive
+            ? name === 'F1'
+              ? 'border-red-500/30 bg-red-500/5'
+              : name === 'F2'
+                ? 'border-green-500/30 bg-green-500/5'
+                : 'border-blue-500/30 bg-blue-500/5'
             : 'border-border bg-card hover:bg-secondary/50'}
         `}
         whileHover={{ scale: 1.01, transition: { duration: 0.2 } }}
@@ -48,26 +64,30 @@ const FlagToggle = ({ name, label, description, index }: FlagToggleProps) => {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.2 + (index * 0.1) }}
               >
-                <Flag
-                  className={`h-5 w-5 ${isActive ? 'text-primary' : 'text-muted-foreground'}`}
-                />
+                {getIcon(name)}
               </motion.div>
-              
+
               <h3 className="text-lg font-medium">{label}</h3>
-              
+
               <div className="text-xs px-2 py-0.5 rounded-full font-medium ml-1 bg-secondary text-secondary-foreground">
                 {name}
               </div>
             </div>
-            
+
             <p className="text-muted-foreground text-sm">{description}</p>
           </div>
-          
+
           <div className="relative">
             <div
               className={`
                 w-12 h-7 rounded-full transition-colors duration-300 cursor-pointer
-                ${isActive ? 'bg-primary' : 'bg-secondary'}
+                ${isActive
+                  ? name === 'F1'
+                    ? 'bg-red-500'
+                    : name === 'F2'
+                      ? 'bg-green-500'
+                      : 'bg-blue-500'
+                  : 'bg-secondary'}
               `}
             >
               <AnimatePresence initial={false}>
