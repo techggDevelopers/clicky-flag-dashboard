@@ -50,12 +50,12 @@ const Index = () => {
         </div>
 
         <motion.div
-          className="mt-12 glass-effect rounded-xl p-6 text-center"
+          className="mt-12 rounded-xl p-6 text-center bg-card border shadow-sm"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.6 }}
         >
-          <h3 className="text-lg font-medium mb-2">Status Summary</h3>
+          <h3 className="text-lg font-medium mb-2 text-card-foreground">Status Summary</h3>
           <p className="text-muted-foreground mb-4">
             {activeFlags.length === 0
               ? "No flags are currently active"
@@ -70,8 +70,12 @@ const Index = () => {
                 className={`
                   w-8 h-8 rounded-md flex items-center justify-center text-xs font-medium transition-all
                   ${isActive
-                    ? 'bg-primary text-primary-foreground shadow-sm'
-                    : 'bg-secondary text-secondary-foreground'}
+                    ? name === 'F1'
+                      ? 'bg-red-500 text-white dark:bg-red-600'
+                      : name === 'F2'
+                        ? 'bg-green-500 text-white dark:bg-green-600'
+                        : 'bg-blue-500 text-white dark:bg-blue-600'
+                    : 'bg-secondary text-secondary-foreground dark:bg-secondary/80'}
                 `}
               >
                 {name}
