@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../contexts/AuthContext';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 interface LocationState {
   message?: string;
@@ -38,8 +38,10 @@ const Login: React.FC = () => {
     setLoading(true);
 
     try {
+      // Use the AuthContext login function which handles navigation
       await login(email, password);
-      // Navigation is handled in the login function
+
+      // Note: we don't need to manually navigate here as AuthContext login already does that
     } catch (err: any) {
       console.error('Login error:', err);
       setError(err.message || 'Login failed. Please check your credentials.');
@@ -109,14 +111,14 @@ const Login: React.FC = () => {
             </button>
           </form>
 
-          <div className="mt-4 text-center">
+          {/* <div className="mt-4 text-center">
             <p className="text-sm text-gray-600 dark:text-gray-400">
               Don't have an account?{' '}
               <Link to="/register" className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400">
                 Register
               </Link>
             </p>
-          </div>
+          </div> */}
         </div>
       </div>
     </div>

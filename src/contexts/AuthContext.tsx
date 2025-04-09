@@ -2,6 +2,9 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
+// Define API URL - use Render URL directly
+const API_URL = 'https://techgg-clicky-flag-dashboard.onrender.com';
+
 interface User {
     _id: string;
     username: string;
@@ -20,7 +23,6 @@ interface AuthContextType {
 }
 
 // Configure axios defaults
-// axios.defaults.baseURL = '/api';  // Use relative URL to avoid CORS issues
 axios.defaults.headers.common['Content-Type'] = 'application/json';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -49,7 +51,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 if (token) {
                     setAuthToken(token);
                     try {
-                        const response = await axios.get('/api/auth/me');
+                        const response = await axios.get(`${API_URL}/auth/me`);
                         setUser(response.data);
 
                         // Set danger mode state if needed
@@ -74,7 +76,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const login = async (email: string, password: string) => {
         try {
-            const response = await axios.post('/api/auth/login', { email, password });
+            const response = await axios.post(`${API_URL}/auth/login`, { email, password });
             const { token, user } = response.data;
 
             // Store token in localStorage and set axios headers

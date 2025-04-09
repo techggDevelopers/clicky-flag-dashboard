@@ -13,8 +13,8 @@ const envVars = {
 
 console.log('Current Environment:', envVars);
 
-// Use environment variable or default to localhost
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+// Use environment variable or default to the Render backend
+const API_URL = import.meta.env.VITE_API_URL || 'https://techgg-clicky-flag-dashboard.onrender.com';
 
 console.log('API Configuration:', {
   'Using Environment Variable?': !!import.meta.env.VITE_API_URL,
@@ -54,11 +54,9 @@ export const useAuthStore = create<AuthState>()(
 
       login: async (email: string, password: string) => {
         try {
-          const response = await axios.post(`${API_URL}/auth/login`, {
+          const response = await axios.post(`/api/auth/login`, {
             email,
             password
-          }, {
-            withCredentials: true // Important for cookies
           });
 
           const { user } = response.data;
@@ -86,12 +84,10 @@ export const useAuthStore = create<AuthState>()(
 
       register: async (name: string, email: string, password: string) => {
         try {
-          const response = await axios.post(`${API_URL}/auth/register`, {
+          const response = await axios.post(`/api/auth/register`, {
             name,
             email,
             password
-          }, {
-            withCredentials: true // Important for cookies
           });
 
           const { user } = response.data;
@@ -111,9 +107,7 @@ export const useAuthStore = create<AuthState>()(
 
       logout: async () => {
         try {
-          await axios.post(`${API_URL}/auth/logout`, {}, {
-            withCredentials: true // Important for cookies
-          });
+          await axios.post(`/api/auth/logout`, {});
         } catch (error) {
           console.error("Logout error:", error);
         } finally {

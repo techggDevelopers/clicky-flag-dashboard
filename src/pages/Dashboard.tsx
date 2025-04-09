@@ -18,6 +18,9 @@ interface UserFlag {
     updatedAt: string;
 }
 
+// Define API URL - use Render URL directly
+const API_URL = 'https://techgg-clicky-flag-dashboard.onrender.com';
+
 const Dashboard: React.FC = () => {
     const { user } = useAuth();
     const [flags, setFlags] = useState<Flag[]>([]);
@@ -31,11 +34,11 @@ const Dashboard: React.FC = () => {
             setError(null);
             try {
                 // Fetch all flags
-                const flagsResponse = await axios.get('/api/flags');
+                const flagsResponse = await axios.get(`${API_URL}/flags`);
                 const flagsData = flagsResponse.data;
 
                 // Fetch user-specific flags
-                const userFlagsResponse = await axios.get('/api/flags/user');
+                const userFlagsResponse = await axios.get(`${API_URL}/flags/user`);
                 const userFlagsData = userFlagsResponse.data;
 
                 // Combine the data
@@ -75,7 +78,7 @@ const Dashboard: React.FC = () => {
             );
 
             // Send update to server
-            await axios.post(`/api/flags/toggle/${flagName}`, {
+            await axios.post(`${API_URL}/flags/toggle/${flagName}`, {
                 enabled: !currentlyEnabled
             });
         } catch (error) {
@@ -84,8 +87,8 @@ const Dashboard: React.FC = () => {
             setError('Failed to update flag. Please try again.');
 
             // Refresh flags to get current state
-            const flagsResponse = await axios.get('/api/flags');
-            const userFlagsResponse = await axios.get('/api/flags/user');
+            const flagsResponse = await axios.get(`${API_URL}/flags`);
+            const userFlagsResponse = await axios.get(`${API_URL}/flags/user`);
 
             // Re-combine data
             const flagsData = flagsResponse.data;

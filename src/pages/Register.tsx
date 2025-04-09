@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 
+// Define API URL - use Render URL directly
+const API_URL = 'https://techgg-clicky-flag-dashboard.onrender.com';
+
 const Register: React.FC = () => {
     const navigate = useNavigate();
     const [username, setUsername] = useState('');
@@ -34,8 +37,10 @@ const Register: React.FC = () => {
         setLoading(true);
 
         try {
-            await axios.post('/api/auth/register', {
+            // Include both username and name fields to support both backend models
+            await axios.post(`${API_URL}/auth/register`, {
                 username,
+                name: username, // Add name field to match any backend expecting it
                 email,
                 password
             });

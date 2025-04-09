@@ -2,13 +2,9 @@ import { create } from 'zustand';
 import { toast } from 'sonner';
 import axios from 'axios';
 
-// Use environment variable or default to localhost
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
-
 // Debug logging
 console.log('FlagStore Environment Variables:', {
-  VITE_API_URL: import.meta.env.VITE_API_URL,
-  Final_API_URL: API_URL
+  VITE_API_URL: import.meta.env.VITE_API_URL
 });
 
 export interface Flag {
@@ -40,18 +36,12 @@ export const useFlagStore = create<FlagStore>((set, get) => ({
     set({ isLoading: true });
     try {
       // First try to get existing flags
-      let flagsData = (await axios.get(`${API_URL}/flags`, {
-        withCredentials: true
-      })).data;
+      let flagsData = (await axios.get('/api/flags')).data;
 
       if (flagsData.length === 0) {
         // If no flags exist, initialize them
-        await axios.post(`${API_URL}/flags/initialize`, {}, {
-          withCredentials: true
-        });
-        flagsData = (await axios.get(`${API_URL}/flags`, {
-          withCredentials: true
-        })).data;
+        await axios.post('/api/flags/initialize', {});
+        flagsData = (await axios.get('/api/flags')).data;
       }
 
       // Convert to the format our app uses
@@ -95,8 +85,8 @@ export const useFlagStore = create<FlagStore>((set, get) => ({
 
     try {
       // Send the update to the backend using the correct endpoint
-      await axios.patch(`${API_URL}/flags/${flagName}/toggle`, {}, {
-        withCredentials: true
+      await axios.post(`/api/flags/toggle/${flagName}`, {
+        enabled: newValue
       });
 
       toast.success(`Flag ${flagName} ${newValue ? 'enabled' : 'disabled'}`);
@@ -106,7 +96,7 @@ export const useFlagStore = create<FlagStore>((set, get) => ({
         flagDetails: state.flagDetails.map(flag =>
           flag.name === flagName
             ? { ...flag, enabled: newValue }
-            : { ...flag, enabled: false }
+            : { ...flag, enabled: newValue ? false : flag.enabled }
         )
       }));
     } catch (error) {
