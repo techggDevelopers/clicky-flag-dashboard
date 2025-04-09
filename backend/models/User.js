@@ -51,7 +51,25 @@ userSchema.pre('save', async function (next) {
 
 // Method to compare passwords
 userSchema.methods.comparePassword = async function (candidatePassword) {
-  return await bcrypt.compare(candidatePassword, this.password);
+  try {
+    console.log('Comparing passwords...');
+    if (!candidatePassword) {
+      console.error('Empty candidate password provided');
+      return false;
+    }
+
+    if (!this.password) {
+      console.error('User has no password stored');
+      return false;
+    }
+
+    const isMatch = await bcrypt.compare(candidatePassword, this.password);
+    console.log('Password comparison result:', isMatch);
+    return isMatch;
+  } catch (error) {
+    console.error('Error comparing passwords:', error);
+    throw error; // Re-throw to be handled by the controller
+  }
 };
 
 // Method to check if a user is an admin

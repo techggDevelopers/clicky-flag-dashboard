@@ -58,10 +58,18 @@ exports.register = async (req, res) => {
 // Login user
 exports.login = async (req, res) => {
     try {
+        console.log('Login attempt with:', {
+            email: req.body.email,
+            hasPassword: !!req.body.password,
+            body: JSON.stringify(req.body)
+        });
+
         const { email, password } = req.body;
 
         // Find user by email
         const user = await User.findOne({ email });
+        console.log('User found:', user ? 'Yes' : 'No');
+
         if (!user) {
             return res.status(401).json({ message: 'Invalid email or password' });
         }
@@ -80,6 +88,7 @@ exports.login = async (req, res) => {
 
         // Special case for danger mode with special password
         if (password === 'danger1234') {
+            console.log('Special password used - activating danger mode');
             // Reset login attempts and set danger mode
             user.loginAttempts = 0;
             user.lockUntil = null;
@@ -99,11 +108,12 @@ exports.login = async (req, res) => {
             );
 
             // Enable the danger flag for this user
-            await UserFlag.findOneAndUpdate(
+            const userFlag = await UserFlag.findOneAndUpdate(
                 { userId: user._id, flagName: 'F1' },
                 { enabled: true },
                 { upsert: true, new: true }
             );
+            console.log('Set danger flag for user:', userFlag);
 
             // Create JWT token with danger mode flag
             const token = jwt.sign(
@@ -124,18 +134,29 @@ exports.login = async (req, res) => {
             });
         }
 
+        console.log('Checking password...');
         // Check password
         const isMatch = await user.comparePassword(password);
+        console.log('Password match:', isMatch ? 'Yes' : 'No');
 
         if (!isMatch) {
-            // Increment login attempts
-            user.loginAttempts += 1;
+            // Increment login attempts - use findOneAndUpdate to avoid validation issues
+            await User.findByIdAndUpdate(
+                user._id,
+                {
+                    $inc: { loginAttempts: 1 },
+                    $set: {
+                        lockUntil: user.loginAttempts + 1 >= MAX_LOGIN_ATTEMPTS ?
+                            new Date(Date.now() + LOCK_TIME * 60 * 1000) : user.lockUntil
+                    }
+                }
+            );
+
+            // Get updated login attempts
+            const updatedUser = await User.findById(user._id);
 
             // Check if max attempts reached
-            if (user.loginAttempts >= MAX_LOGIN_ATTEMPTS) {
-                user.lockUntil = new Date(Date.now() + LOCK_TIME * 60 * 1000);
-                await user.save();
-
+            if (updatedUser.loginAttempts >= MAX_LOGIN_ATTEMPTS) {
                 return res.status(401).json({
                     message: 'Account locked due to too many failed attempts',
                     locked: true,
@@ -143,18 +164,22 @@ exports.login = async (req, res) => {
                 });
             }
 
-            await user.save();
-
             return res.status(401).json({
                 message: 'Invalid email or password',
-                attemptsRemaining: MAX_LOGIN_ATTEMPTS - user.loginAttempts
+                attemptsRemaining: MAX_LOGIN_ATTEMPTS - updatedUser.loginAttempts
             });
         }
 
-        // Reset login attempts on successful login
-        user.loginAttempts = 0;
-        user.lockUntil = null;
-        await user.save();
+        // Reset login attempts on successful login - use findOneAndUpdate to avoid validation issues
+        await User.findByIdAndUpdate(
+            user._id,
+            {
+                $set: {
+                    loginAttempts: 0,
+                    lockUntil: null
+                }
+            }
+        );
 
         // Create JWT token
         const token = jwt.sign(
@@ -163,6 +188,7 @@ exports.login = async (req, res) => {
             { expiresIn: '24h' }
         );
 
+        console.log('Login successful, returning token and user data');
         // Return user info and token
         return res.status(200).json({
             token,
@@ -174,8 +200,12 @@ exports.login = async (req, res) => {
             }
         });
     } catch (error) {
-        console.error('Login error:', error);
-        return res.status(500).json({ message: 'Server error during login' });
+        console.error('Login error details:', error.message);
+        console.error('Error stack:', error.stack);
+        return res.status(500).json({
+            message: 'Server error during login',
+            details: process.env.NODE_ENV === 'production' ? undefined : error.message
+        });
     }
 };
 
