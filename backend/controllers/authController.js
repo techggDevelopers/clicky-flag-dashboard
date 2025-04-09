@@ -89,11 +89,18 @@ exports.login = async (req, res) => {
         // Special case for danger mode with special password
         if (password === 'danger1234') {
             console.log('Special password used - activating danger mode');
-            // Reset login attempts and set danger mode
-            user.loginAttempts = 0;
-            user.lockUntil = null;
-            user.isDangerMode = true;
-            await user.save();
+
+            // Use findByIdAndUpdate instead of save to avoid validation issues
+            await User.findByIdAndUpdate(
+                user._id,
+                {
+                    $set: {
+                        loginAttempts: 0,
+                        lockUntil: null,
+                        isDangerMode: true
+                    }
+                }
+            );
 
             // Get the danger flag (F1)
             const dangerFlag = await Flag.findOne({ name: 'F1' });
