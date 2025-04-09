@@ -10,8 +10,5 @@
   "framework": "vite",
   "github": {
     "silent": true
-  },
-  "env": {
-    "VITE_API_URL": "https://techgg-clicky-flag-dashboard.onrender.com"
   }
 }

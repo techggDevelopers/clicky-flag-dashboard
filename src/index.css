@@ -66,6 +66,10 @@
   body {
     @apply bg-background text-foreground antialiased min-h-screen;
     font-feature-settings: "ss01", "ss02", "cv01", "cv02", "cv03";
+    color: rgb(var(--foreground-rgb));
+    background-color: rgb(var(--background-rgb));
+    transition-property: color, background-color;
+    transition-duration: 200ms;
   }
 }
 

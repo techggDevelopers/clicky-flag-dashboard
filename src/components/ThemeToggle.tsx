@@ -1,32 +1,35 @@
-import { Moon, Sun } from 'lucide-react';
-import { useThemeStore } from '@/lib/themeStore';
-import { motion } from 'framer-motion';
+import React, { useEffect, useState } from 'react';
+import * as Icons from 'react-feather';
 
-export function ThemeToggle() {
-    const { theme, toggleTheme } = useThemeStore();
+export const ThemeToggle: React.FC = () => {
+    const [theme, setTheme] = useState(() => {
+        const savedTheme = localStorage.getItem('theme');
+        return savedTheme || 'light';
+    });
+
+    useEffect(() => {
+        if (theme === 'dark') {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+        localStorage.setItem('theme', theme);
+    }, [theme]);
+
+    const toggleTheme = () => {
+        setTheme(theme === 'light' ? 'dark' : 'light');
+    };
 
     return (
-        <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+        <button
             onClick={toggleTheme}
-            className="relative h-9 w-9 rounded-md border border-transparent bg-transparent hover:bg-secondary/80 flex items-center justify-center"
-            aria-label="Toggle theme"
+            className="rounded-full p-2 bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+            aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}
         >
-            <div className="relative h-5 w-5">
-                <Sun
-                    className={`absolute h-5 w-5 transition-all ${theme === 'dark'
-                            ? 'scale-0 rotate-[-180deg] opacity-0'
-                            : 'scale-100 rotate-0 opacity-100'
-                        }`}
-                />
-                <Moon
-                    className={`absolute h-5 w-5 transition-all ${theme === 'dark'
-                            ? 'scale-100 rotate-0 opacity-100'
-                            : 'scale-0 rotate-180 opacity-0'
-                        }`}
-                />
-            </div>
-        </motion.button>
+            {theme === 'light' ?
+                React.createElement(Icons.Moon, { size: 20 }) :
+                React.createElement(Icons.Sun, { size: 20 })
+            }
+        </button>
     );
-} 
+}; 

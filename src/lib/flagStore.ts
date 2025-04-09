@@ -2,8 +2,14 @@ import { create } from 'zustand';
 import { toast } from 'sonner';
 import axios from 'axios';
 
-// Use environment variable or default to the Vercel deployed backend
-const API_URL = import.meta.env.VITE_API_URL || 'https://techgg-clicky-flag-dashboard.onrender.com';
+// Use environment variable or default to localhost
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+
+// Debug logging
+console.log('FlagStore Environment Variables:', {
+  VITE_API_URL: import.meta.env.VITE_API_URL,
+  Final_API_URL: API_URL
+});
 
 export interface Flag {
   _id: string;
@@ -33,8 +39,20 @@ export const useFlagStore = create<FlagStore>((set, get) => ({
   initFlags: async () => {
     set({ isLoading: true });
     try {
-      const response = await axios.get(`${API_URL}/flags`);
-      const flagsData = response.data;
+      // First try to get existing flags
+      let flagsData = (await axios.get(`${API_URL}/flags`, {
+        withCredentials: true
+      })).data;
+
+      if (flagsData.length === 0) {
+        // If no flags exist, initialize them
+        await axios.post(`${API_URL}/flags/initialize`, {}, {
+          withCredentials: true
+        });
+        flagsData = (await axios.get(`${API_URL}/flags`, {
+          withCredentials: true
+        })).data;
+      }
 
       // Convert to the format our app uses
       const flagState: FlagState = {};
@@ -51,14 +69,6 @@ export const useFlagStore = create<FlagStore>((set, get) => ({
       console.error('Failed to initialize flags:', error);
       toast.error('Failed to load flags');
       set({ isLoading: false });
-
-      // Fallback to initial data if the API call fails
-      const initialFlags = {
-        'F1': false,  // Danger
-        'F2': false,  // Restore
-        'F3': false,  // Support
-      };
-      set({ flags: { ...initialFlags } });
     }
   },
 
@@ -84,9 +94,9 @@ export const useFlagStore = create<FlagStore>((set, get) => ({
     });
 
     try {
-      // Send the update to the backend
-      await axios.patch(`${API_URL}/flags/${flagName}`, {
-        enabled: newValue
+      // Send the update to the backend using the correct endpoint
+      await axios.patch(`${API_URL}/flags/${flagName}/toggle`, {}, {
+        withCredentials: true
       });
 
       toast.success(`Flag ${flagName} ${newValue ? 'enabled' : 'disabled'}`);

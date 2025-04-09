@@ -1,159 +1,124 @@
-import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
-import { Mail, Lock, LogIn } from "lucide-react";
-import { toast } from "sonner";
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '../contexts/AuthContext';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 
-import Header from "@/components/Header";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { useAuthStore } from "@/lib/authStore";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { ThemeToggle } from "@/components/ThemeToggle";
+interface LocationState {
+  message?: string;
+}
 
-const Login = () => {
+const Login: React.FC = () => {
+  const { login } = useAuth();
   const navigate = useNavigate();
-  const { login, loginError, clearLoginError } = useAuthStore();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const location = useLocation();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  // Clear any login errors when component unmounts or when inputs change
+  // Check for success message in location state (from registration)
   useEffect(() => {
-    return () => {
-      clearLoginError();
-    };
-  }, [clearLoginError, email, password]);
+    const state = location.state as LocationState;
+    if (state && state.message) {
+      setSuccess(state.message);
+      // Clear the location state
+      window.history.replaceState({}, document.title);
+    }
+  }, [location]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!email || !password) {
-      toast.error("Please enter both email and password");
+      setError('Please enter both email and password');
       return;
     }
 
-    setIsLoading(true);
+    setError('');
+    setSuccess('');
+    setLoading(true);
 
     try {
       await login(email, password);
-      toast.success("Login successful!");
-      navigate("/");
-    } catch (error: any) {
-      console.error("Login failed:", error);
-      // Toast message is handled by the useAuthStore login function
+      // Navigation is handled in the login function
+    } catch (err: any) {
+      console.error('Login error:', err);
+      setError(err.message || 'Login failed. Please check your credentials.');
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      <div className="fixed top-4 right-4">
-        <ThemeToggle />
+    <div className="flex min-h-screen flex-col justify-center">
+      <div className="mx-auto w-full max-w-md p-8">
+        <div className="mb-8 text-center">
+          <h2 className="text-3xl font-bold">Flag Dashboard</h2>
+          <p className="text-gray-600 dark:text-gray-400">Please login to access the dashboard</p>
+        </div>
+
+        <div className="rounded-lg border border-gray-200 bg-white p-8 shadow-md dark:border-gray-700 dark:bg-gray-800">
+          <h3 className="mb-6 text-2xl font-bold">Sign In</h3>
+
+          {error && (
+            <div className="mb-4 rounded-md bg-red-50 p-4 text-sm text-red-700 dark:bg-red-900/20 dark:text-red-400">
+              {error}
+            </div>
+          )}
+
+          {success && (
+            <div className="mb-4 rounded-md bg-green-50 p-4 text-sm text-green-700 dark:bg-green-900/20 dark:text-green-400">
+              {success}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <label htmlFor="email" className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Email address
+              </label>
+              <input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="block w-full rounded-md border border-gray-300 p-3 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                placeholder="Email address"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="password" className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Password
+              </label>
+              <input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="block w-full rounded-md border border-gray-300 p-3 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                placeholder="Password"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full rounded-md bg-blue-600 py-3 text-center font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-70"
+            >
+              {loading ? 'Signing in...' : 'Sign In'}
+            </button>
+          </form>
+
+          <div className="mt-4 text-center">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Don't have an account?{' '}
+              <Link to="/register" className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400">
+                Register
+              </Link>
+            </p>
+          </div>
+        </div>
       </div>
-
-      <motion.div
-        className="flex-1 max-w-md w-full mx-auto py-16 px-4 sm:px-6"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.5 }}
-      >
-        <Header
-          title="Admin"
-          description="Please login to access the dashboard"
-        />
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.5 }}
-        >
-          <Card className="mt-8 border bg-card/50 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-            <CardHeader>
-              <CardTitle className="text-2xl font-bold">Sign In</CardTitle>
-              <CardDescription>
-                Enter your credentials to access the dashboard
-              </CardDescription>
-            </CardHeader>
-            <form onSubmit={handleSubmit}>
-              <CardContent className="space-y-4">
-                {loginError && (
-                  <Alert variant="destructive" className="bg-destructive/10 text-destructive border-destructive/20">
-                    <AlertDescription className="text-sm">
-                      {loginError.message}
-                      {loginError.attemptsRemaining !== undefined && (
-                        <div className="mt-1 font-medium">
-                          Attempts remaining: {loginError.attemptsRemaining}
-                        </div>
-                      )}
-                      {loginError.locked && (
-                        <div className="mt-1 font-medium">
-                          Account locked. Try again in {loginError.remainingTime} minutes.
-                        </div>
-                      )}
-                    </AlertDescription>
-                  </Alert>
-                )}
-
-                <div className="space-y-2">
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-muted-foreground">
-                      <Mail className="h-5 w-5" />
-                    </div>
-                    <Input
-                      type="email"
-                      placeholder="Email address"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="pl-10"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-muted-foreground">
-                      <Lock className="h-5 w-5" />
-                    </div>
-                    <Input
-                      type="password"
-                      placeholder="Password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="pl-10"
-                    />
-                  </div>
-                </div>
-              </CardContent>
-
-              <CardFooter className="flex flex-col gap-4">
-                <Button
-                  type="submit"
-                  className="w-full font-semibold tracking-wider"
-                  disabled={isLoading || (loginError?.locked === true)}
-                >
-                  {isLoading ? (
-                    <span className="flex items-center">
-                      <svg className="animate-spin -ml-1 mr-3 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      Signing in...
-                    </span>
-                  ) : (
-                    <span className="flex items-center">
-                      <LogIn className="mr-2 h-4 w-4" />
-                      Sign In
-                    </span>
-                  )}
-                </Button>
-              </CardFooter>
-            </form>
-          </Card>
-        </motion.div>
-      </motion.div>
     </div>
   );
 };

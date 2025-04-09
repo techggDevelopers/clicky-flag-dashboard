@@ -1,10 +1,26 @@
-
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import axios from 'axios';
 
-// Use environment variable or default to the Vercel deployed backend
-const API_URL = import.meta.env.VITE_API_URL || 'https://techgg-clicky-flag-dashboard.onrender.com';
+// Debug environment variables
+const envVars = {
+  VITE_API_URL: import.meta.env.VITE_API_URL,
+  MODE: import.meta.env.MODE,
+  BASE_URL: import.meta.env.BASE_URL,
+  PROD: import.meta.env.PROD,
+  DEV: import.meta.env.DEV
+};
+
+console.log('Current Environment:', envVars);
+
+// Use environment variable or default to localhost
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+
+console.log('API Configuration:', {
+  'Using Environment Variable?': !!import.meta.env.VITE_API_URL,
+  'Environment API URL': import.meta.env.VITE_API_URL,
+  'Final API URL': API_URL
+});
 
 interface User {
   _id: string;
@@ -22,7 +38,6 @@ interface LoginError {
 interface AuthState {
   isAuthenticated: boolean;
   user: User | null;
-  token: string | null;
   loginError: LoginError | null;
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<string>;
@@ -35,7 +50,6 @@ export const useAuthStore = create<AuthState>()(
     (set) => ({
       isAuthenticated: false,
       user: null,
-      token: null,
       loginError: null,
 
       login: async (email: string, password: string) => {
@@ -43,19 +57,17 @@ export const useAuthStore = create<AuthState>()(
           const response = await axios.post(`${API_URL}/auth/login`, {
             email,
             password
+          }, {
+            withCredentials: true // Important for cookies
           });
 
-          const { user, token } = response.data;
+          const { user } = response.data;
 
           set({
             isAuthenticated: true,
             user,
-            token,
             loginError: null
           });
-
-          // Set the Authorization header for all future requests
-          axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
         } catch (error: any) {
           console.error("Login error:", error);
 
@@ -78,20 +90,17 @@ export const useAuthStore = create<AuthState>()(
             name,
             email,
             password
+          }, {
+            withCredentials: true // Important for cookies
           });
 
-          // After successful registration, automatically log the user in
-          const { user, token } = response.data;
+          const { user } = response.data;
 
           set({
             isAuthenticated: true,
             user,
-            token,
             loginError: null
           });
-
-          // Set the Authorization header for all future requests
-          axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
           return response.data.message;
         } catch (error: any) {
@@ -100,16 +109,20 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      logout: () => {
-        // Remove the Authorization header
-        delete axios.defaults.headers.common['Authorization'];
-
-        set({
-          isAuthenticated: false,
-          user: null,
-          token: null,
-          loginError: null
-        });
+      logout: async () => {
+        try {
+          await axios.post(`${API_URL}/auth/logout`, {}, {
+            withCredentials: true // Important for cookies
+          });
+        } catch (error) {
+          console.error("Logout error:", error);
+        } finally {
+          set({
+            isAuthenticated: false,
+            user: null,
+            loginError: null
+          });
+        }
       },
 
       clearLoginError: () => {
@@ -121,11 +134,3 @@ export const useAuthStore = create<AuthState>()(
     }
   )
 );
-
-// Set the Authorization header when the application loads
-if (typeof window !== 'undefined') {
-  const authState = JSON.parse(localStorage.getItem('auth-storage') || '{}');
-  if (authState?.state?.token) {
-    axios.defaults.headers.common['Authorization'] = `Bearer ${authState.state.token}`;
-  }
-}
