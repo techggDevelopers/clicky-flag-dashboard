@@ -2,9 +2,19 @@ const express = require('express');
 const Flag = require('../models/Flag');
 const UserFlag = require('../models/UserFlag');
 const { auth } = require('../middleware/auth');
+const User = require('../models/User');
 
 const router = express.Router();
 
+router.get('/:email', async (req, res) => {
+  const { email } = req.params;
+  const user = await User.findOne({ email });
+  if (!user) {
+    return res.status(404).json({ message: 'User not found' });
+  }
+  const userFlags = await UserFlag.find({ userId: user._id });
+  res.json(userFlags);
+});
 // Get all flags
 router.get('/', auth, async (req, res) => {
   try {
