@@ -83,9 +83,9 @@ router.post('/initialize', auth, async (req, res) => {
     const count = await Flag.countDocuments();
     if (count === 0) {
       const initialFlags = [
-        { name: "F1", label: "Danger", description: "Self Destruct & ShutDown" },
-        { name: "F2", label: "Restore", description: "Self Restore & Start Apps" },
-        { name: "F3", label: "Support", description: "Allow remote access for support" }
+        { name: "F1", label: "D", description: "" },
+        { name: "F2", label: "R", description: "" },
+        { name: "F3", label: "S", description: "" }
       ];
 
       await Flag.insertMany(initialFlags);

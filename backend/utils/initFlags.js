@@ -6,18 +6,18 @@ const initializeFlags = async () => {
     const initialFlags = [
       {
         name: "F1",
-        label: "Danger",
-        description: "Self Destruct & ShutDown"
+        label: "D",
+        description: ""
       },
       {
         name: "F2",
-        label: "Restore",
-        description: "Self Restore & Start Apps"
+        label: "R",
+        description: ""
       },
       {
         name: "F3",
-        label: "Support",
-        description: "Allow remote access for support"
+        label: "S",
+        description: ""
       }
     ];
 
