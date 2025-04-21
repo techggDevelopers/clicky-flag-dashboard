@@ -39,7 +39,7 @@ const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => 
   }
 
   if (isDangerMode) {
-    return <Navigate to="/danger-mode" />;
+    return <Navigate to="/web" />;
   }
 
   return <>{children}</>;
@@ -68,7 +68,7 @@ const App: React.FC = () => {
               }
             />
             <Route
-              path="/danger-mode"
+              path="/web"
               element={
                 <PrivateRoute>
                   <DangerMode />

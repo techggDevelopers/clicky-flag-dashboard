@@ -6,7 +6,7 @@ interface HeaderProps {
   description?: string;
 }
 
-const Header: React.FC<HeaderProps> = ({ title = 'Flag Dashboard', description = 'Manage your feature flags' }) => {
+const Header: React.FC<HeaderProps> = ({ title = 'Blogs', description = 'Read and make your Knowlege grow' }) => {
   const { user, logout } = useAuth();
 
   return (

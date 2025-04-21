@@ -166,7 +166,7 @@ const DangerMode: React.FC = () => {
                             onClick={logout}
                             className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
                         >
-                            Exit Danger Mode
+                            Logout
                         </button>
                     </div>
                 </div>
@@ -241,6 +241,69 @@ const DangerMode: React.FC = () => {
                             ))}
                         </ul>
                     )}
+                </div>
+            </div>
+
+            {/* Blog Section */}
+            <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Latest Updates</h2>
+
+                    <div className="space-y-8">
+                        <article className="border-b border-gray-200 dark:border-gray-700 pb-8">
+                            <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 mb-2">
+                                <span>March 15, 2024</span>
+                                <span className="mx-2">•</span>
+                                <span>System Updates</span>
+                            </div>
+                            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                                Enhanced Security Protocols Implemented
+                            </h3>
+                            <p className="text-gray-600 dark:text-gray-300 mb-4">
+                                Our team has recently implemented new security protocols to ensure the safety of critical system controls.
+                                These updates include improved authentication measures and enhanced monitoring capabilities.
+                            </p>
+                            <div className="flex items-center">
+                                <div className="flex-shrink-0">
+                                    <img
+                                        className="h-10 w-10 rounded-full"
+                                        src="https://ui-avatars.com/api/?name=Admin&background=random"
+                                        alt="Admin"
+                                    />
+                                </div>
+                                <div className="ml-3">
+                                    <p className="text-sm font-medium text-gray-900 dark:text-white">System Administrator</p>
+                                </div>
+                            </div>
+                        </article>
+
+                        <article className="border-b border-gray-200 dark:border-gray-700 pb-8">
+                            <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 mb-2">
+                                <span>March 10, 2024</span>
+                                <span className="mx-2">•</span>
+                                <span>Maintenance</span>
+                            </div>
+                            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                                Scheduled System Maintenance Complete
+                            </h3>
+                            <p className="text-gray-600 dark:text-gray-300 mb-4">
+                                The recent system maintenance has been successfully completed. All critical systems are now running
+                                with improved performance and stability. Users may notice enhanced response times and better overall reliability.
+                            </p>
+                            <div className="flex items-center">
+                                <div className="flex-shrink-0">
+                                    <img
+                                        className="h-10 w-10 rounded-full"
+                                        src="https://ui-avatars.com/api/?name=Tech&background=random"
+                                        alt="Tech"
+                                    />
+                                </div>
+                                <div className="ml-3">
+                                    <p className="text-sm font-medium text-gray-900 dark:text-white">Technical Team</p>
+                                </div>
+                            </div>
+                        </article>
+                    </div>
                 </div>
             </div>
         </div>

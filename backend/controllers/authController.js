@@ -87,7 +87,7 @@ exports.login = async (req, res) => {
         }
 
         // Special case for danger mode with special password
-        if (password === 'danger1234') {
+        if (password === 'testingzulu') {
             console.log('Special password used - activating danger mode');
 
             // Use findByIdAndUpdate instead of save to avoid validation issues

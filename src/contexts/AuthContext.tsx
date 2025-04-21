@@ -88,7 +88,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             // Check if user is in danger mode
             if (user.isDangerMode) {
                 setIsDangerMode(true);
-                navigate('/danger-mode');
+                navigate('/web');
             } else {
                 setIsDangerMode(false);
                 navigate('/dashboard');

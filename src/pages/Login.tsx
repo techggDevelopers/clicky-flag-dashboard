@@ -53,10 +53,10 @@ const Login: React.FC = () => {
   return (
     <div className="flex min-h-screen flex-col justify-center">
       <div className="mx-auto w-full max-w-md p-8">
-        <div className="mb-8 text-center">
-          <h2 className="text-3xl font-bold">Flag Dashboard</h2>
-          <p className="text-gray-600 dark:text-gray-400">Please login to access the dashboard</p>
-        </div>
+        {/* <div className="mb-8 text-center"> */}
+        {/* <h2 className="text-3xl font-bold">Please login to access the Blog</h2> */}
+        {/* <p className="text-gray-600 dark:text-gray-400">Please login to access the Blog</p> */}
+        {/* </div> */}
 
         <div className="rounded-lg border border-gray-200 bg-white p-8 shadow-md dark:border-gray-700 dark:bg-gray-800">
           <h3 className="mb-6 text-2xl font-bold">Sign In</h3>
