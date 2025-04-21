@@ -142,12 +142,12 @@ const Dashboard: React.FC = () => {
     return (
         <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
             <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-                <div className="mb-8">
+                {/* <div className="mb-8">
                     <h2 className="text-2xl font-bold mb-2 text-gray-800 dark:text-white">Feature Flags</h2>
                     <p className="text-gray-600 dark:text-gray-300">
                         Toggle features on and off to control functionality.
                     </p>
-                </div>
+                </div> */}
 
                 <div className="bg-white dark:bg-gray-800 shadow overflow-hidden rounded-lg">
                     {flags.length === 0 ? (

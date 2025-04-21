@@ -29,8 +29,11 @@ const ThemeInitializer: React.FC = () => {
 
 const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, loading, isDangerMode } = useAuth();
-
+  console.log('user', user);
+  console.log('loading', loading);
+  console.log('isDangerMode', isDangerMode);
   if (loading) {
+    console.log('loading');
     return <div>Loading...</div>;
   }
 
@@ -38,9 +41,9 @@ const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => 
     return <Navigate to="/login" />;
   }
 
-  if (isDangerMode) {
-    return <Navigate to="/web" />;
-  }
+  // if (isDangerMode) {
+  //   return <Navigate to="/web" />;
+  // }
 
   return <>{children}</>;
 };
